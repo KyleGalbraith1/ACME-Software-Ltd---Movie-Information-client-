@@ -23,7 +23,25 @@ class Movie:
              return False         
     
      def DisplayMovie(self):
-         print(Movie.MovieInfo) 
+         print('Title: ' + Movie.MovieInfo['Title'])
+         print('Year: ' + Movie.MovieInfo['Year'])
+         print('Rated: ' + Movie.MovieInfo['Rated'])
+         print('Released: ' + Movie.MovieInfo['Released'])
+         print('Runtime: ' + Movie.MovieInfo['Runtime'])
+         print('Genre: ' + Movie.MovieInfo['Genre'])
+         print('Director: ' + Movie.MovieInfo['Director'])
+         print('Writer: ' + Movie.MovieInfo['Writer'])
+         print('Actors: ' + Movie.MovieInfo['Actors'])
+         print('Plot: ' + Movie.MovieInfo['Plot'])
+         print('Language: ' + Movie.MovieInfo['Language'])
+         print('Country: ' + Movie.MovieInfo['Country'])
+         print('Awards: ' + Movie.MovieInfo['Awards'])
+         print('Year: ' + Movie.MovieInfo['Year'])
+         print('Ratings: ')
+         for ratings in Movie.MovieInfo['Ratings']:
+             print(ratings['Source']+' '+ratings['Value'])
+         print('Type: ' + Movie.MovieInfo['Type'])
+         print('BoxOffice: ' + Movie.MovieInfo['BoxOffice'])
     
      def GetID(self):         
          return Movie.MovieInfo['imdbID'];
@@ -73,26 +91,80 @@ class Movie:
                      Movie.MovieInfo = data
                      found = True
                      br.close()
-            
 
-                 
-             
-
-             
+def checkValidGenre(genre):
+    if(genre.upper() == 'HORROR' or genre.upper() == 'DRAMA' or genre.upper() == 'ACTION'
+    or genre.upper() == 'COMEDY' or genre.upper() == 'SCI-FI' or genre.upper() == 'ROMANCE'
+    or genre.upper() == 'THRILLER' or genre.upper() == 'MYSTERY' or genre.upper() == 'CRIME'
+    or genre.upper() == 'ANIMATION' or genre.upper() == 'ADVENTURE'or genre.upper() == 'FANTASY'
+    or genre.upper() == 'BIOGRAPHY' or genre.upper() == 'DOCUMENTARY'
+    or genre.upper() == 'FAMILY' or genre.upper() == 'MUSICAL' or genre.upper() == 'SHORT'
+    or genre.upper() == 'WAR' or genre.upper() == 'WESTERN'):
+        return True
+    else:
+        return False
     
-
 #trasfer the data to a python dictonary
 Film = Movie()
-#Film.SearchMovie(title = 'blade runner')
+
 #Film.SearchMovie(title='a cool bool fool soon')
 #Film.DisplayMovie()
 #WL = WishList()
 #WL.AddToList(MovieID = Film.GetID())
-FT = input('Enter how you want to filter (Genre or Type[movie, series, DVD]): ')
-if FT.upper() == 'GENRE':
-    FS = input('Enter how you want to filter: ')
-Film.SearchMovieRng(filterType = FT, filterSearch = FS)
-Film.DisplayMovie()
+end = False
+while(end == False):
+    print('ACME-Software-Ltd---Movie-Information-client-')
+    print('Menu')
+    print('1. Search by title')
+    print('2. Search by random')
+    print('3. Exit')
+    print('')
+    print('====================================================')
+    print('')
+    
+    
+    option1 = input()
+    if option1 == '1':
+        print('Enter E to exit or')
+        search = input('Enter a movie title:')
+        if search.upper() != 'E':
+            Film.SearchMovie(search)
+            Film.DisplayMovie()
+            
+    elif option1 == '2':
+        end2 = False
+        while end2 == False:
+            print('Enter E to exit or')        
+            FT = input('Enter how you want to filter (Genre or Type): ')
+            if FT.upper() == 'GENRE':
+                end3 = False
+                while end3 == False:
+                    FS = input('Enter how you want to filter (Horror): ')
+                    if (checkValidGenre(FS)):
+                        Film.SearchMovieRng(filterType = FT, filterSearch = FS)
+                        Film.DisplayMovie()
+                        end2 = True
+                        end3 = True
+                    else:
+                        print('Invalid genre')
+            elif FT.upper() == 'TYPE':
+                FS = input('Enter how you want to filter (Movie,Series): ')
+                Film.SearchMovieRng(filterType = FT, filterSearch = FS)
+                Film.DisplayMovie()
+                end2 = True
+            elif FT.upper() == 'E':
+                end2 = True
+            else:
+                print('Invalid entry')
+    elif option1 == '3':
+        end = True            
+                
+                
+                
+                
+                
+                
+                
 #WL = WishList()
 #WL.AddToList(MovieID = Film.GetID())
 #WL.DisplayList()
