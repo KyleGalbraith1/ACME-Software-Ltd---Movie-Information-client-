@@ -20,7 +20,12 @@ class Movie:
          if genre.upper() in movie['Genre'].upper():
              return True
          else:
-             return False         
+             return False
+     def CheckMovieType(movie, Type):         
+         if Type.upper() in movie['Type'].upper():
+             return True
+         else:
+             return False   
     
      def DisplayMovie(self):
          print('Title: ' + Movie.MovieInfo['Title'])
@@ -41,7 +46,7 @@ class Movie:
          for ratings in Movie.MovieInfo['Ratings']:
              print(ratings['Source']+' '+ratings['Value'])
          print('Type: ' + Movie.MovieInfo['Type'])
-         print('BoxOffice: ' + Movie.MovieInfo['BoxOffice'])
+         
     
      def GetID(self):         
          return Movie.MovieInfo['imdbID'];
@@ -91,6 +96,10 @@ class Movie:
                      Movie.MovieInfo = data
                      found = True
                      br.close()
+                 elif(filterType.upper() == 'TYPE') and (Movie.CheckMovieType(movie=data,Type=filterSearch)==True):
+                     Movie.MovieInfo = data
+                     found = True
+                     br.close()
 
 def checkValidGenre(genre):
     if(genre.upper() == 'HORROR' or genre.upper() == 'DRAMA' or genre.upper() == 'ACTION'
@@ -100,6 +109,12 @@ def checkValidGenre(genre):
     or genre.upper() == 'BIOGRAPHY' or genre.upper() == 'DOCUMENTARY'
     or genre.upper() == 'FAMILY' or genre.upper() == 'MUSICAL' or genre.upper() == 'SHORT'
     or genre.upper() == 'WAR' or genre.upper() == 'WESTERN'):
+        return True
+    else:
+        return False
+    
+def checkValidType(type):
+    if(type.upper() == 'MOVIE' or type.upper() == 'SERIES'):
         return True
     else:
         return False
@@ -119,11 +134,10 @@ while(end == False):
     print('2. Search by random')
     print('3. Exit')
     print('')
-    print('====================================================')
-    print('')
+    print('====================================================') 
     
     
-    option1 = input()
+    option1 = input('Enter an option by number: ')
     if option1 == '1':
         print('Enter E to exit or')
         search = input('Enter a movie title:')
@@ -148,10 +162,16 @@ while(end == False):
                     else:
                         print('Invalid genre')
             elif FT.upper() == 'TYPE':
-                FS = input('Enter how you want to filter (Movie,Series): ')
-                Film.SearchMovieRng(filterType = FT, filterSearch = FS)
-                Film.DisplayMovie()
-                end2 = True
+                end3 = False
+                while end3 == False:
+                    FS = input('Enter how you want to filter (Movie,Series): ')
+                    if (checkValidType(FS)):
+                        Film.SearchMovieRng(filterType = FT, filterSearch = FS)
+                        Film.DisplayMovie()
+                        end2 = True
+                        end3 = True
+                    else:
+                        print('Invalid genre')
             elif FT.upper() == 'E':
                 end2 = True
             else:
