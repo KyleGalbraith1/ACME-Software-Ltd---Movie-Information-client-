@@ -49,9 +49,7 @@ class SearchList:
                 for content in movies:                                        
                     self.SearchedContent.append(content)
                 found = True                
-                br.close()
-            elif(data['Response'] == 'False' and page>=1):
-                page=page-1
+                br.close()            
             else:
                 ContentName = input('Enter a valid content title: ')           
         #return page
@@ -69,19 +67,16 @@ class SearchList:
             # to fill out a form
             data = json.loads(br.find_element_by_tag_name('body').text)
             #close the browser so it doesn't clutter the user
-            try:    
+            if(int(data['total_results']) > 0):                
                 movies = []               
                 for content in data['results']:                    
                     movies.append(Movie(content))
                 for content in movies:                                        
                     self.SearchedContent.append(content)
                 found = True                
-                br.close()
-            except:
-                if(page>=1):
-                    page = page-1
-                else:
-                    ContentName = input('Enter a valid content title: ')           
+                br.close()           
+            else:
+                ContentName = input('Enter a valid content title: ')             
         #return page information
         return {'Page':page, 'MaxPage':data['total_pages']}          
 
@@ -210,8 +205,7 @@ class Movie:
              br.get('http://www.omdbapi.com/?t='+ title + '&apikey=b32d452f')
              # to fill out a form
              data = json.loads(br.find_element_by_tag_name('body').text)
-             #close the browser so it doesn't clutter the user
-             print(data)
+             #close the browser so it doesn't clutter the user             
              if(data['Response'] == 'True'):
                  self.MovieInfo = data
                  found = True
@@ -295,7 +289,7 @@ def checkValidType(Type):
     except:
         return False
 def wishlistMenu(movie, wishlist):
-    option = input('Do you want to add this film to your wishlist? [y/n]')
+    option = input('Do you want to add this film to your wishlist? [y/n]: ')
     valid = False
     while valid == False:
         try:
@@ -415,6 +409,7 @@ while(end == False):
                  if option2 == '1':
                      end4 = False
                      page = 1
+                     print('This search will be made using '+database)
                      ContentName = input('Enter the name of the content you want to search: ')
                      while end4 == False:
                          if page > 0:
