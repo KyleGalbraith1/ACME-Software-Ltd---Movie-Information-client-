@@ -14,15 +14,21 @@ class SearchList:
             i.DisplayMovie();            
             index = index+1
         return;
-    def ReturnSelectedContent(self, Reference):        
+    def ReturnSelectedContent(self, Reference):
+                
         if(len(self.SearchedContent) > 0):
             try:
-                if int(Reference) < len(self.SearchedContent):                      
-                    return self.SearchedContent[int(Reference)]                                            
-            except:
-                return None                                           
+                if(len(self.SearchedContent) > int(Reference)):                     
+                    movieInfo = self.SearchedContent[int(Reference)].ReturnMovieInfo()                    
+                    try:
+                     return movieInfo['Title'] 
+                    except:
+                     return movieInfo['title']
+            except:                
+                return None                                            
         else:                             
             return 'Empty'
+        
         
     def SearchMovies(self, ContentName, page):        
         br = webdriver.Chrome('chromedriver.exe')
@@ -37,20 +43,42 @@ class SearchList:
             data = json.loads(br.find_element_by_tag_name('body').text)
             #close the browser so it doesn't clutter the user
             if(data['Response'] == 'True'):    
-                movies = []
-                print(data)
+                movies = []               
                 for content in data['Search']:                    
                     movies.append(Movie(content))
                 for content in movies:                                        
                     self.SearchedContent.append(content)
                 found = True                
-                br.close()
-            elif(data['Response'] == 'False' and page>1):
-                page=page-1
+                br.close()            
             else:
                 ContentName = input('Enter a valid content title: ')           
         #return page
-        return {'Page':page, 'MaxPage':math.ceil(int(data['totalResults'])/10)}       
+        return {'Page':page, 'MaxPage':math.ceil(int(data['totalResults'])/10)}
+
+    def SearchMoviesTMDB(self, ContentName, page):        
+        br = webdriver.Chrome('chromedriver.exe')
+        br.implicitly_wait(15) # wait's for the page to get done
+         #loading before it does anything with it
+         #br.get('http://www.omdbapi.com/?i=tt3896198&apikey=b32d452f')
+#https://api.themoviedb.org/3/search/movie?query=hulk&api_key=efd9b74dce000dd9c3cbdd4d84d62a90&page=1
+        found = False        
+        while(found == False):            
+            br.get('https://api.themoviedb.org/3/search/movie?query='+ContentName+'&api_key=efd9b74dce000dd9c3cbdd4d84d62a90&page='+str(page))
+            # to fill out a form
+            data = json.loads(br.find_element_by_tag_name('body').text)
+            #close the browser so it doesn't clutter the user
+            if(int(data['total_results']) > 0):                
+                movies = []               
+                for content in data['results']:                    
+                    movies.append(Movie(content))
+                for content in movies:                                        
+                    self.SearchedContent.append(content)
+                found = True                
+                br.close()           
+            else:
+                ContentName = input('Enter a valid content title: ')             
+        #return page information
+        return {'Page':page, 'MaxPage':data['total_pages']}          
 
         
         
@@ -134,9 +162,12 @@ class Movie:
          if Type.upper() in movie['Type'].upper():
              return True
          else:
-             return False   
+             return False 
+     def ReturnMovieInfo(self):
+         return self.MovieInfo
     
      def DisplayMovie(self):
+      try: 
          try:
              print('Title: ' + self.MovieInfo['Title'])
              print('Year: ' + self.MovieInfo['Year'])
@@ -158,6 +189,11 @@ class Movie:
              print('Type: ' + self.MovieInfo['Type'])
          except:
              print('Type: ' + self.MovieInfo['Type'])
+      except:
+             print('Title: ' + self.MovieInfo['title'])             
+             print('Released: ' + self.MovieInfo['release_date'])
+             print('Plot: ' + self.MovieInfo['overview'])
+             print('Language: ' + self.MovieInfo['original_language'])             
      def SearchMovie(self, title):
          
          br = webdriver.Chrome('chromedriver.exe')
@@ -169,7 +205,7 @@ class Movie:
              br.get('http://www.omdbapi.com/?t='+ title + '&apikey=b32d452f')
              # to fill out a form
              data = json.loads(br.find_element_by_tag_name('body').text)
-             #close the browser so it doesn't clutter the user
+             #close the browser so it doesn't clutter the user             
              if(data['Response'] == 'True'):
                  self.MovieInfo = data
                  found = True
@@ -215,16 +251,16 @@ def PageTurner(page,maxPage):
     end = False
     while(end == False):
         entry = input()
-        if (entry == '<' and page > 1):
+        if (entry == '<' and page >= 1):
             end = True
             return page-1
         elif(entry == '<'):
-            entry = input('This is the first page!')
-        elif(entry == '>' and page <= maxPage):
+            entry = input('This is the first page; enter < or E to exit: ')
+        elif(entry == '>' and page < maxPage):
             end = True
             return page+1 
         elif(entry == '>'):
-            entry = input('This is the last page!')               
+            entry = input('This is the last page; enter < or E to exit: ')               
         elif(entry == 'e' or entry == 'E'):
             end = True
             return 0
@@ -253,7 +289,7 @@ def checkValidType(Type):
     except:
         return False
 def wishlistMenu(movie, wishlist):
-    option = input('Do you want to add this film to your wishlist? [y/n]')
+    option = input('Do you want to add this film to your wishlist? [y/n]: ')
     valid = False
     while valid == False:
         try:
@@ -344,8 +380,22 @@ while(end == False):
     elif option1 == '3':
          SPage = SearchList()
          end2 = False
+         validDatabase = False
          clear = lambda: os.system('cls') #on Windows System
          clear()
+         database = input('Enter a database you want to search by [IMDB or TMDB]: ')
+         while validDatabase == False:             
+             try:
+                 if database.upper() == 'IMDB':
+                     database = database.upper()
+                     validDatabase = True
+                 elif database.upper() == 'TMDB':
+                     database = database.upper()
+                     validDatabase = True
+                 else:
+                     database = input('Invalid entry; enter either [IMDB or TMDB]: ')                 
+             except:
+                 database = input('Invalid entry; enter either [IMDB or TMDB]: ')
          while end2 == False:             
              print('______________________________________________________________')
              print('General search Menu')
@@ -359,11 +409,14 @@ while(end == False):
                  if option2 == '1':
                      end4 = False
                      page = 1
+                     print('This search will be made using '+database)
                      ContentName = input('Enter the name of the content you want to search: ')
                      while end4 == False:
-                         if page > 0:                             
-                             PageInfo = SPage.SearchMovies(ContentName, page)
-                             #print(PageInfo)
+                         if page > 0:
+                             if database == 'IMDB':
+                                 PageInfo = SPage.SearchMovies(ContentName, page)
+                             else:
+                                 PageInfo = SPage.SearchMoviesTMDB(ContentName, page)
                              newPage=int(PageInfo['Page'])
                              maxPage=int(PageInfo['MaxPage'])
                              if page == newPage:                                 
@@ -378,14 +431,17 @@ while(end == False):
                              end4 = True
                  elif option2 == '2':
                      print('Enter E to exit or...')
-                     ContentRef = input('Enter a valid content reference to remove it: ')
+                     ContentRef = input('Enter a valid content reference to add it: ')
                      valid = False
                      while valid == False:
                          if (ContentRef == 'E' or ContentRef == 'e'):
                              valid = True
-                         elif SPage.ReturnSelectedContent(ContentRef) != None:
-                             WL.AddToList(ContentRef)
-                             Valid = True
+                         elif (SPage.ReturnSelectedContent(ContentRef) != None 
+                               and SPage.ReturnSelectedContent(ContentRef) != 'Empty'):
+                             m = Movie()
+                             m.SearchMovie(str(SPage.ReturnSelectedContent(ContentRef)))
+                             WL.AddToList(m)
+                             valid = True
                          elif SPage.ReturnSelectedContent(ContentRef) == 'Empty':
                              print('Your search list is empty, search for content first')
                              valid = True
