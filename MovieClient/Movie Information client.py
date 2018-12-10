@@ -56,15 +56,19 @@ class SearchList:
         
 class WishList:
     MovieList = []
+    ContentComment = []
     def DisplayList(self):
-        try:
+        if(len(self.MovieList) > 0):
             index = 0
             for i in self.MovieList:
                 print('______________________________________________________________')
                 print('Content reference: '+str(index))
-                i.DisplayMovie();            
+                i.DisplayMovie();
+                for comments in self.ContentComment:
+                    if(int(comments['Reference'])==index):
+                        print(comments['Comment'])
                 index = index+1
-        except:
+        else:
             print('Your wishlist is empty')
         
     def AddToList(self, Search):
@@ -77,7 +81,32 @@ class WishList:
                 try:
                     if int(Reference) < len(self.MovieList):
                         del self.MovieList[int(Reference)]
+                        for comments in self.ContentComment:
+                            if(int(comments['Reference'])==Reference):
+                                del comments
                         print('This item has been removed!')
+                        valid = True
+                    else:
+                        print('Enter E to exit or...')
+                        Reference = input('Invalid entry; enter a refence that is valid: ') 
+                except:
+                    if(Reference == 'E' or Reference == 'e'):
+                        valid = True                
+                    else:
+                        print('Enter E to exit or...')
+                        Reference = input('Invalid entry; enter a refence that is valid: ')
+            else:
+                print('Your wishlist is empty!')
+                valid = True
+    def AddContentComment(self, Reference, Comment):
+        valid = False
+        while valid == False:
+            if len(self.MovieList) > 0:
+                try:
+                    if int(Reference) < len(self.MovieList):
+                        data = {'Reference':Reference,'Comment':Comment}
+                        self.ContentComment.append(data)
+                        print('This comment has been added!')
                         valid = True
                     else:
                         print('Enter E to exit or...')
@@ -216,20 +245,26 @@ def checkValidGenre(genre):
         return False
     
 def checkValidType(Type):
-    if(Type.upper() == 'MOVIE' or Type.upper() == 'SERIES'):
-        return True
-    else:
+    try:
+        if(Type.upper() == 'MOVIE' or Type.upper() == 'SERIES'):
+            return True
+        else:
+            return False
+    except:
         return False
 def wishlistMenu(movie, wishlist):
     option = input('Do you want to add this film to your wishlist? [y/n]')
     valid = False
     while valid == False:
-        if option.upper() == 'Y':
-            wishlist.AddToList(movie)
-            valid = True
-        elif option.upper() == 'N':
-            valid = True
-        else:
+        try:
+            if option.upper() == 'Y':
+                wishlist.AddToList(movie)
+                valid = True
+            elif option.upper() == 'N':
+                valid = True
+            else:
+                option = input('Invalid input; enter y or n: ')
+        except:
             option = input('Invalid input; enter y or n: ')
         
     
@@ -259,6 +294,8 @@ while(end == False):
     
     option1 = input('Enter an option by number: ')
     if option1 == '1':
+        clear = lambda: os.system('cls') #on Windows System
+        clear()
         print('Enter E to exit or...')
         search = input('Enter a movie title: ')
         if search.upper() != 'E':
@@ -267,43 +304,49 @@ while(end == False):
             Film.DisplayMovie()
             wishlistMenu(Film, WL)
     elif option1 == '2':
+        clear = lambda: os.system('cls') #on Windows System
+        clear()
         end2 = False
         while end2 == False:
             print('Enter E to exit or...')        
             FT = input('Enter how you want to filter (Genre or Type): ')
-            if FT.upper() == 'GENRE':
-                end3 = False
-                while end3 == False:
-                    FS = input('Enter how you want to filter (Horror): ')
-                    if (checkValidGenre(FS)):
-                        Film.SearchMovieRng(filterType = FT, filterSearch = FS)
-                        Film.DisplayMovie()
-                        wishlistMenu(Film, WL)
-                        end2 = True
-                        end3 = True
-                    else:
-                        print('Invalid genre')
-            elif FT.upper() == 'TYPE':
-                end3 = False
-                FS = input('Enter how you want to filter (Movie,Series): ')
-                while end3 == False:                    
-                    if (checkValidType(FS)):
-                        Film.SearchMovieRng(filterType = FT, filterSearch = FS)
-                        Film.DisplayMovie()
-                        wishlistMenu(Film, WL)
-                        end2 = True
-                        end3 = True
-                    else:
-                        FS = input('Invalid entry; enter either movie or series: ')
-            elif FT.upper() == 'E':
-                end2 = True
-            else:
+            try:
+                if FT.upper() == 'GENRE':
+                    end3 = False
+                    while end3 == False:
+                        FS = input('Enter how you want to filter (Horror): ')
+                        if (checkValidGenre(FS)):
+                            Film.SearchMovieRng(filterType = FT, filterSearch = FS)
+                            Film.DisplayMovie()
+                            wishlistMenu(Film, WL)
+                            end2 = True
+                            end3 = True
+                        else:
+                            print('Invalid genre')
+                elif FT.upper() == 'TYPE':
+                    end3 = False
+                    FS = input('Enter how you want to filter (Movie,Series): ')
+                    while end3 == False:                    
+                        if (checkValidType(FS)):
+                            Film.SearchMovieRng(filterType = FT, filterSearch = FS)
+                            Film.DisplayMovie()
+                            wishlistMenu(Film, WL)
+                            end2 = True
+                            end3 = True
+                        else:
+                            FS = input('Invalid entry; enter either movie or series: ')
+                elif FT.upper() == 'E':
+                    end2 = True
+                else:
+                    print('Invalid entry')
+            except:
                 print('Invalid entry')
-                
     elif option1 == '3':
          SPage = SearchList()
          end2 = False
-         while end2 == False:
+         clear = lambda: os.system('cls') #on Windows System
+         clear()
+         while end2 == False:             
              print('______________________________________________________________')
              print('General search Menu')
              print('1. Search content')
@@ -324,8 +367,6 @@ while(end == False):
                              newPage=int(PageInfo['Page'])
                              maxPage=int(PageInfo['MaxPage'])
                              if page == newPage:                                 
-                                 clear = lambda: os.system('cls') #on Windows System
-                                 clear()
                                  SPage.DisplayContent()
                                  print('______________________________________________________________')
                                  print('Page: '+str(page) +'/'+str(maxPage))
@@ -360,45 +401,37 @@ while(end == False):
                      option2 = input('Invalid entry; enter a number: ')
                         
     elif option1 == '4':
-                end2 = False
-                while end2 == False:
-                    print('______________________________________________________________')
-                    print('Wishlist Menu')
-                    print('1. Display wishlist')
-                    print('2. Remove content')
-                    print('3. Exit')
-                    print('______________________________________________________________')                    
-                    option2 = input('Enter an option by number: ')
-                    end3 = False
-                    while end3 == False:
-                        if option2 == '1':
-                            WL.DisplayList()
-                            end3 = True
-                        elif option2 == '2':
-                            contentRef = input('Enter a valid content reference to remove it: ')
-                            WL.RemoveFromList(contentRef)
-                            end3=True
-                        elif option2 == '3':
-                            end2 = True
-                            end3 = True
-                        else:
-                            option2 = input('Invalid entry; enter a number: ')
+        clear = lambda: os.system('cls') #on Windows System
+        clear()
+        end2 = False
+        while end2 == False:
+            print('______________________________________________________________')
+            print('Wishlist Menu')
+            print('1. Display wishlist')
+            print('2. Remove content')
+            print('3. Add comments to content')
+            print('4. Exit')
+            print('______________________________________________________________')                    
+            option2 = input('Enter an option by number: ')
+            end3 = False
+            while end3 == False:
+                if option2 == '1':
+                    WL.DisplayList()
+                    end3 = True
+                elif option2 == '2':
+                    contentRef = input('Enter a valid content reference to remove it: ')
+                    WL.RemoveFromList(contentRef)
+                    end3=True
+                elif option2 == '3':
+                    contentRef = input('Enter a valid content reference to add a comment: ')
+                    contentComment = input('Enter a comment for the content: ')
+                    WL.AddContentComment(contentRef,contentComment)
+                    end3=True
+                elif option2 == '4':
+                    end2 = True
+                    end3 = True
+                else:
+                    option2 = input('Invalid entry; enter a number: ')
                         
     elif option1 == '5':
-         end = True            
-                
-                
-                
-                
-                
-                
-                
-#
-#WL.AddToList(MovieID = Film.GetID())
-#WL.DisplayList()
-
-#for Ratings in movies['Ratings']:
- #   source = Ratings['Source']
-  #  rating = Ratings['Value']
-   # print(source,rating)
-
+         end = True 
